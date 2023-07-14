@@ -1,0 +1,10 @@
+title: Caikit
+description: Caikit
+remote_theme: pmarsceill/just-the-docs
+
+url: 
+
+# Color scheme supports "light" (default) and "dark"
+color_scheme: dark
+
+logo: "/assets/images/caikit.png"
