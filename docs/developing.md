@@ -1,4 +1,11 @@
+---
+layout: default
+title: Development Guide
+nav_order: 100
+---
+
 # Development Guide
+{: .no_toc }
 
 This document describes how to set up development environments to begin contributing to caikit projects.
 

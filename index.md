@@ -16,4 +16,4 @@ Caikit's purpose is twofold:
 
 Simply put, Caikit makes it easy for you to implement and manage AI models in your apps, so you can focus on new development instead of maintenance.
 
-Curious to learn more? Check out our [model user tutorial](./docs/tutorial_appdev.md) or [browse our API documentation](https://caikit.readthedocs.io/en/latest/index.html).
+Curious to learn more? Check out our [model user tutorial]({{ site.baseurl }}{% link docs/tutorial_appdev.md %}) or [browse our API documentation](https://caikit.readthedocs.io/en/latest/index.html).
