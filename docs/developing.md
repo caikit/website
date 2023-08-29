@@ -16,7 +16,7 @@ We think of it as Make, but for python.
 Plenty of public documentation is available for tox, but the quick gist is that for every task, tox manages an isolated virtual environment for that task and those environments all reside in the `.tox` directory. 
 These tasks and their environments are describe in the `tox.ini` file at the root of each repo.
 
-## Installing tox
+### Installing tox
 
 The `tox` tool must be installed on your system in order to run builds, since it is the entrypoint for all build commands.
 Since `tox` is a python module, it may be installed in your favorite python virtual environment of choice and invoked from there.
@@ -125,3 +125,15 @@ hello world
 
 If environment variables are required, they must be specified in the `passenv` config.
 If external scripts are invoked, they must be specified in the `allowlist_externals` config.
+
+## BYO Python Environment
+
+Tox is provided for convenience and consistency for CI actions, but you can easily set up your own virtual environment to develop with.
+
+From the root of a caikit project:
+1. Use your virtual environment manager of choice ([Conda](https://docs.conda.io/en/latest/), [raw venv](https://docs.python.org/3/library/venv.html), [virtualenv](https://virtualenv.pypa.io/en/latest/), etc.) to create and activate a fresh environment
+2. `pip install .` to install the project and its core set of dependencies
+3. Install any other extras with `pip install ".[${extra_name}]`. Check the `[project.optional-dependencies]` section of the `pyproject.toml` file for all available extras. This may look like `pip install ".[dev-test]"` or `pip install ".[all-dev]"` to install dependencies required to run tests and formatting.
+
+## Setting up PyCharm
+
