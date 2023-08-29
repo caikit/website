@@ -1,7 +1,7 @@
 ---
 layout: default
 title: Development Guide
-nav_order: 100
+nav_order: 5
 ---
 
 # Development Guide
