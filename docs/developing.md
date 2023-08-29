@@ -135,5 +135,60 @@ From the root of a caikit project:
 2. `pip install .` to install the project and its core set of dependencies
 3. Install any other extras with `pip install ".[${extra_name}]`. Check the `[project.optional-dependencies]` section of the `pyproject.toml` file for all available extras. This may look like `pip install ".[dev-test]"` or `pip install ".[all-dev]"` to install dependencies required to run tests and formatting.
 
-## Setting up PyCharm
+## Setting up PyCharm (Community Edition)
 
+Pycharm is very plug-and-play friendly and only needs minimal configuration.
+It will need you to specify a python environment to use for indexing, code completion, and run/debug contexts.
+It may also require some project-specific settings for your python path.
+
+### Setting up PyCharm's python env
+
+By default, PyCharm will try to use your system's python environment, and you probably don't want this.
+Three other easy options are:
+
+#### 1. Use your BYO env
+
+If you've used an environment manager like `conda` to create a python environment already, you can point PyCharm to it.
+
+From the Settings menu (`⌘ ,` on Mac), navigate to `Project: {project_name} > Python Interpreter > add interpreter > Add Local Interpreter`
+
+Select `Environment: existing`
+Navigate to the `python3` executable, for conda installed via homebrew this may look like
+`/opt/homebrew/anaconda3/envs/${env_name}/bin/python3`
+
+Save the new interpreter and Apply to the project
+
+#### 2. Use a tox env
+
+This is not recommended by the tox maintainers, but you can re-use the existing `tox` environments for other purposes.
+
+First create a tox environment, e.g. by running `tox -e py311`.
+Follow the above steps for selecting an existing environment, and use `${repo_root}/.tox/py311/bin/python3`
+
+#### 3. Let PyCharm manage a fresh one
+
+PyCharm can also create a new virtual environment for you.
+From the `Add Local Interpreter` menu, select `Environment: new`.
+
+You can choose where the environment is created, by default it will be placed in `${repo_root}/venv`.
+
+### Adding folders to Pycharm's path
+
+For some projects you may need to add directories to your PYTHONPATH to make packages importable.
+For example, `caikit/caikit` has a `sample_lib` test fixture which contains a sample implementation of an AI library using caikit.
+The top-level `conftest.py` will take care of adding that fixture to the syspath, but if you want PyCharm to have code-completion and indexing support, you'll need to configure it.
+
+To do this in PyCharm, right-click the directory in the project explorer and select `Mark Directory As > Sources Root`
+
+![](../assets/images/mark_sources.png)
+
+### Running a debugger with PyCharm
+
+If PyCharm's environment has been configured correctly, then debugging is pretty straightforward.
+Breakpoints are set by clicking on the left editor sidebar next to the line numbers. Conditions can be added to breakpoints by right-clicking on them.
+
+Debugging can be run by either:
+1. Starting a debug session locally: Grab a unit test or `__main__` entrypoint and click the green run flag next to it
+2. Attaching a debugger to a running process: Start a process (e.g. `$ python3 -m caikit.runtime`) and then select `Run > Attach to Process`
+
+Remote debugging is available in PyCharm Professional. If you pay for that, you probably know how to use it!
