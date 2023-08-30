@@ -308,6 +308,8 @@ How to debug python modules is covered in this article: https://code.visualstudi
 
 ### What is it
 
+https://github.com/caikit/caikit/tree/main/tests/fixtures/sample_lib
+
 The `sample_lib` is a very simple non-production Caikit library that exists within the `tests/fixtures/sample_lib` directory, and consists of `Modules` and `Tasks` like a production `Caikit` library but with boilerplate code within those `Modules` . This library was created only for helping with unit testing.
 
 If you are a new user of `Caikit` and you want to explore the gRPC or REST APIs without writing any code, then the `sample_lib` library can be a good place to start.
