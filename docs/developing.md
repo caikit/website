@@ -192,3 +192,21 @@ Debugging can be run by either:
 2. Attaching a debugger to a running process: Start a process (e.g. `$ python3 -m caikit.runtime`) and then select `Run > Attach to Process`
 
 Remote debugging is available in PyCharm Professional. If you pay for that, you probably know how to use it!
+
+## Updating project documentation
+
+Caikit projects build documentation with [Sphinx](https://www.sphinx-doc.org/en/master/) and host it on [readthedocs](https://docs.readthedocs.io/en/stable/).
+A solid tutorial with basic concepts is found [here](https://docs.readthedocs.io/en/stable/tutorial/index.html).
+
+The actual documentation builds are run on readthedocs.org, not on github.com. You won't find a `.github/workflows` entry for the documentation.
+Each repo that hosts docs should contain a [.readthedocs.yaml](https://github.com/caikit/caikit/blob/main/.readthedocs.yaml) file containing the build config for readthedocs to use.
+If a repo is not yet hosting documentation, a caikit admin will need to set up the project on readthedocs.org.
+
+We make use of the sphinx [autoapi](https://pypi.org/project/sphinx-autoapi/) extension to generate docs from the python source code.
+Documentation can also be manually added by editing the `.rst` files. The homepage should generally live at `docs/source/index.rst`
+
+To generate the documentation locally while making changes, use the `docs` tox env.
+```shell
+tox -e docs
+open docs/source/_build/html/index.html
+```
