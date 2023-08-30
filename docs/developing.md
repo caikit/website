@@ -267,7 +267,7 @@ Remote debugging is available in PyCharm Professional. If you pay for that, you 
 
 #### With VS-Code
 
-ow to debug python modules is covered in this article: https://code.visualstudio.com/docs/python/debugging
+How to debug python modules is covered in this article: https://code.visualstudio.com/docs/python/debugging
 
 ##### TL;DR
 
