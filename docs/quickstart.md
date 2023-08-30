@@ -27,7 +27,7 @@ We generate 3 services total:
 - An inference service. The proto for this service is `protos/samplelibservice.proto`
 - A training management service. The proto for this service is `protos/trainingmanagement.proto`
 
-You can now proceed to leave the server running and open a new terminal to proceed with next steps to train a model, check its training status and send an inference request to your model.
+You can now leave the server running and open a new terminal to proceed with next steps to train a model, check its training status and send an inference request to your model.
 
 (To kill the server, press Ctrl + C. This will remove the `protos` directory to clean up.)
 
