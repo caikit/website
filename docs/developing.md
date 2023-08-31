@@ -36,6 +36,7 @@ This document describes how to set up development environments to begin contribu
       - [With PyCharm](#with-pycharm)
       - [With VS-Code](#with-vs-code)
         - [TL;DR](#tldr)
+  - [Updating docs](#updating-project-documentation)
   - [Sample lib](#sample-lib)
     - [What is it](#what-is-it)
     - [How to play around with it](#how-to-play-around-with-it)
@@ -303,6 +304,25 @@ How to debug python modules is covered in this article: https://code.visualstudi
    ```
 
    This should wait for the user to start the debug session through `vs-code` and it should stop on any breakpoints that you have configured.
+
+## Updating project documentation
+
+Caikit projects build documentation with [Sphinx](https://www.sphinx-doc.org/en/master/) and host it on [readthedocs](https://docs.readthedocs.io/en/stable/).
+A solid tutorial with basic concepts is found [here](https://docs.readthedocs.io/en/stable/tutorial/index.html).
+
+The actual documentation builds are run on readthedocs.org, not on github.com. You won't find a `.github/workflows` entry for the documentation.
+Each repo that hosts docs should contain a [.readthedocs.yaml](https://github.com/caikit/caikit/blob/main/.readthedocs.yaml) file containing the build config for readthedocs to use.
+If a repo is not yet hosting documentation, a caikit admin will need to set up the project on readthedocs.org.
+
+We make use of the Sphinx [AutoAPI](https://pypi.org/project/sphinx-autoapi/) extension to generate docs from the python source code.
+You can also manually edit the docs by editing the `.rst` files. The home page should generally live at `docs/source/index.rst`
+
+To generate the documentation locally while making changes, use the `docs` tox env.
+
+```shell
+tox -e docs
+open docs/source/_build/html/index.html
+```
 
 ## Sample lib
 
