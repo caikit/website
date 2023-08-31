@@ -73,6 +73,9 @@ self-supervised learning
 supervised learning
 : A machine learning training method in which a model is trained on a labeled dataset to make predictions on new data.
 
+task
+: A machine learning task that includes one or multiple implementations to perform a prediction or inference. For example: a `sample` task can have a `sample implementation` and a `list implementation`. All the implementations within a task will have a common protobuf definition for their request and response, ex: `SampleTaskRequest` and `SampleOutputType`. We generate inference service rcps per task, not per implementation.
+
 token
 : A discrete unit of meaning or analysis in a text, such as a word or subword (part of a word).
 
