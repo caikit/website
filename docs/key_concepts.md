@@ -21,4 +21,4 @@ The model is served by a [gRPC](https://grpc.io) server that can run as is or in
 
 [This example of a client](https://github.com/caikit/caikit/blob/main/examples/text-sentiment/client.py) is a simple Python CLI that calls the model and queries it for sentiment analysis on two different pieces of text. The client also references the module configuration.
 
-Check out the full [Text Sentiment example](https://github.com/caikit/caikit/tree/main/examples/text-sentiment) or the [model user tutorial](./docs/tutorial_appdev.md) to understand how to load and infer a model using Caikit.
+Check out the full [Text Sentiment example](https://github.com/caikit/caikit/tree/main/examples/text-sentiment) or the [model user tutorial](tutorial_appdev.md) to understand how to load and infer a model using Caikit.
