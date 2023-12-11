@@ -370,6 +370,31 @@ python dataobject_example.py
 
 ### Data Streaming
 
+For many AI workloads, especially `training`, data volumes quickly escape the bounds of in-memory iterables. There are numerous solutions for managing iterables of data backed by disk or even remote services. In `caikit`, these are all managed via the [DataStream](https://github.com/caikit/caikit/blob/main/caikit/core/data_model/streams/data_stream.py) utility. This class provides consistent iteration semantics wrapping arbitrary [python generators](https://wiki.python.org/moin/Generators).
+
+**datastream_example.py**
+
+```py
+from caikit.core.data_model import DataStream
+import os
+
+in_memory_stream = DataStream.from_iterable((1, 2, 3, 4))
+print(list(in_memory_stream))
+print(list(in_memory_stream))
+
+io_bound_stream = DataStream(lambda: iter(os.listdir(".")))
+print(list(io_bound_stream))
+print(list(io_bound_stream))
+```
+
+```sh
+python datastream_example.py
+# >>> [1, 2, 3, 4]
+# >>> [1, 2, 3, 4]
+# >>> ['_includes', 'LICENSE', 'code-of-conduct.md', 'CODEOWNERS', 'config_example.py', 'docs', '_layouts', 'README.md', '.gitignore', 'index.md', '_config.yml', '.github', 'Gemfile', 'Gemfile.lock', '.git', 'assets']
+# >>> ['_includes', 'LICENSE', 'code-of-conduct.md', 'CODEOWNERS', 'config_example.py', 'docs', '_layouts', 'README.md', '.gitignore', 'index.md', '_config.yml', '.github', 'Gemfile', 'Gemfile.lock', '.git', 'assets']
+```
+
 ### Modules
 
 ### Model Management
