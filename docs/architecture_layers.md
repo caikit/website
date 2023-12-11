@@ -269,13 +269,112 @@ PARAM=0 python log_error_example.py
 
 ## 2. AI Data and Model Abstractions
 
+Above the [**Useful Tools**](#1-useful-tools), `caikit` provides a collection of abstractions and utilities that provide the building blocks for AI workloads. These are all live in `caikit.core` and each have their own sub module.
+
 ### Data Modeling
+
+One of the most important aspects of defining AI workloads is defining the shape of the data needed to perform the work. This can be as simple as `str -> str`, but can quickly grow in complexity to include compositional data model objects (e.g. [TokenClassificationResults](https://github.com/caikit/caikit/blob/main/caikit/interfaces/nlp/data_model/classification.py#L104C7-L104C33)).
+
+To support data object definition and usage, `caikit` provides the [@dataobject](https://github.com/caikit/caikit/blob/main/caikit/core/data_model/dataobject.py) decorator. This utility adapts the [python @dataclass decorator](https://docs.python.org/3/library/dataclasses.html#dataclasses.dataclass) and [Enum class](https://docs.python.org/3/library/enum.html) and binds them to [protobuf](https://protobuf.dev/) definitions for serialization and transport.
+
+**dataobject_exmaple.py**
+
+```py
+from caikit.core import DataObjectBase, dataobject
+from enum import Enum
+from typing import List, Iterable, Tuple, Union
+import struct
+
+
+@dataobject
+class DataTypes(Enum):
+    FLOAT = 1
+    INT = 2
+
+
+@dataobject
+class DataBuffer(DataObjectBase):
+    data: bytes
+    data_type: DataTypes
+
+    @classmethod
+    def from_iterable(
+        cls, vals: Union[Iterable[int], Iterable[float]],
+    ) -> "DataBuffer":
+        data_type = (
+            DataTypes.INT
+            if vals and isinstance(vals[0], int)
+            else DataTypes.FLOAT
+        )
+        data = struct.pack("!I" + "d" * len(vals), len(vals), *vals)
+        return cls(data, data_type)
+
+    def to_type(self) -> Union[Tuple[float], Tuple[int]]:
+        unpacked = struct.unpack_from(
+            "!" + "d" * struct.unpack_from("!I", self.data)[0], self.data, 4
+        )
+        if self.data_type == DataTypes.INT:
+            return tuple(int(element) for element in unpacked)
+        return unpacked
+
+
+@dataobject
+class Embeddings(DataObjectBase):
+    embeddings: List[DataBuffer]
+
+    def to_types(self) -> List[Union[Tuple[float], Tuple[int]]]:
+        return [element.to_type() for element in self.embeddings]
+
+
+embedding_set = Embeddings([
+    DataBuffer.from_iterable([1, 2, 3]),
+    DataBuffer.from_iterable([4, 5, 6]),
+    DataBuffer.from_iterable([0.7, 0.8, 0.9]),
+])
+
+print("## To Types")
+print(embedding_set.to_types())
+print()
+
+print("## To Json")
+print(embedding_set.to_json())
+print()
+
+print("## To Protobuf")
+print(embedding_set.to_proto())
+print()
+```
+
+```sh
+python dataobject_example.py
+# >>> ## To Types
+# >>> [(1, 2, 3), (4, 5, 6), (0.7, 0.8, 0.9)]
+# >>>
+# >>> ## To Json
+# >>> {"embeddings": [{"data": "AAAAAz/wAAAAAAAAQAAAAAAAAABACAAAAAAAAA==", "data_type": "INT"}, {"data": "AAAAA0AQAAAAAAAAQBQAAAAAAABAGAAAAAAAAA==", "data_type": "INT"}, {"data": "AAAAAz/mZmZmZmZmP+mZmZmZmZo/7MzMzMzMzQ==", "data_type": "FLOAT"}]}
+# >>>
+# >>> ## To Protobuf
+# >>> embeddings {
+# >>>   data: "\000\000\000\003?\360\000\000\000\000\000\000@\000\000\000\000\000\000\000@\010\000\000\000\000\000\000"
+# >>>   data_type: INT
+# >>> }
+# >>> embeddings {
+# >>>   data: "\000\000\000\003@\020\000\000\000\000\000\000@\024\000\000\000\000\000\000@\030\000\000\000\000\000\000"
+# >>>   data_type: INT
+# >>> }
+# >>> embeddings {
+# >>>   data: "\000\000\000\003?\346ffffff?\351\231\231\231\231\231\232?\354\314\314\314\314\314\315"
+# >>>   data_type: FLOAT
+# >>> }
+```
 
 ### Data Streaming
 
 ### Modules
 
 ### Model Management
+
+### Augmentors
 
 ## 3. AI Runtime
 
