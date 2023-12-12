@@ -397,6 +397,253 @@ python datastream_example.py
 
 ### Modules
 
+The basic unit of work for AI is the `model`. An AI `model` is, at its highest level, an attempt to replicate some process which we (people) would deem to require intelligence. For the vast majority of models, the behavior of the model is determined by two things:
+
+1. The **algorithm**: This defines _how_ the model attempts to replicate the process
+2. The **data**: This defines _what_ the model is attempting to replicate (observations of the process in the real world)
+
+Combining these two ingredients into a concrete asset is typically framed as the `training` work. Using the resulting combined asset to replicate the process is the `inference` work.
+
+One key observation is that when an `inference` job executes, it _must_ use the same **algorithm** that was used to create the `model` artifacts in the first place, otherwise there can be no guarantee that the model will accurately reproduce the learned approximation to the process that resulted from `training`. In software, this often means controlling as many variables as possible between `training` and `inference`. These variables can include things like preprocessing steps, software package versions, hardware driver versions, etc.
+
+In `caikit`, the [module](https://github.com/caikit/caikit/blob/main/caikit/core/modules/base.py) abstraction provides the base for implementing the **algorithm** for both `training` and `inference` in a single location so that these variables can be explicitly controlled for. The key functions that a `module` expects are `train`, `save`, `load`, and `run`. Depending on the usecase, each of these may be optional, but canonically a `module` which defines all of these functions provides a fully encapsulated and repeatable model template.
+
+**module_example.py**
+
+```py
+from caikit.core import ModuleBase, ModuleConfig, ModuleLoader, ModuleSaver, module
+from caikit.core.data_model import DataStream
+from typing import List, Tuple, Union
+import argparse
+import re
+import tempfile
+
+
+@module(
+    "0f148161-90fc-4275-b6b5-6cbdf9826af6",
+    "NameFinder",
+    "1.0.0",
+)
+class NameFinder(ModuleBase):
+
+    def __init__(self, name_list: List[str]):
+        self._name_list = set(name_list)
+
+    def run(self, text: str) -> List[str]:
+        return [
+            name for name in self._name_list
+            if name in self._preprocess(text)
+        ]
+
+    @classmethod
+    def train(
+        cls,
+        training_data: DataStream[str],
+        delimiters = (" ", ".", ",", ":", ";", "'", "\""),
+        ngram_size: int = 2,
+    ) -> "NameFinder":
+        names = []
+        expr = re.compile("[{}]".format("".join(delimiters)))
+        for sample in training_data:
+            sample = cls._preprocess(sample)
+            token_boundaries = cls._get_token_boundaries(sample, expr)
+            for ng_len in range(1, ngram_size + 1):
+                for idx in range(len(token_boundaries)):
+                    if idx + ng_len > len(token_boundaries):
+                        break
+                    tokens = token_boundaries[idx:idx + ng_len]
+                    names.append(sample[tokens[0][0]: tokens[-1][1]])
+        return cls(names)
+
+    def save(self, model_path: str):
+        with ModuleSaver(self, model_path=model_path) as module_saver:
+            module_saver.update_config({
+                "name_list": self._name_list,
+            })
+
+    @classmethod
+    def load(cls, model_path: Union[str, ModuleConfig]) -> "NameFinder":
+        loader = ModuleLoader(model_path)
+        return cls(loader.config["name_list"])
+
+    ## Impl ##
+
+    @staticmethod
+    def _preprocess(text: str) -> str:
+        return text.lower()
+
+    @staticmethod
+    def _get_token_boundaries(
+        sample: str, expr: re.Pattern,
+    ) -> List[Tuple[int, int]]:
+        token_boundaries = []
+        start = 0
+        for match in expr.finditer(sample):
+            match_offsets = match.span()
+            token_boundaries.append((start, match_offsets[0]))
+            start = match_offsets[1]
+        if start < len(sample):
+            token_boundaries.append((start, len(sample)))
+        return token_boundaries
+
+
+if __name__ == "__main__":
+    parser = argparse.ArgumentParser("Caikit module example")
+    parser.add_argument(
+        "--training-sample", "-s", nargs="+", required=True, help="Names to train with",
+    )
+    parser.add_argument(
+        "--test-sample", "-t", nargs="+", required=True, help="Sample text to run inference with",
+    )
+    parser.add_argument(
+        "--ngram_size", "-n", type=int, default=None, help="N-Gram length for names",
+    )
+    parser.add_argument(
+        "--delimiters", "-d", nargs="*", default=None, help="Tokenization delimiters for training samples",
+    )
+    args = parser.parse_args()
+
+    # Train the model
+    train_kwargs = {"training_data": DataStream.from_iterable(args.training_sample)}
+    if args.delimiters is not None:
+        train_kwargs["delimiters"] = args.delimiters
+    if args.ngram_size is not None:
+        train_kwargs["ngram_size"] = args.ngram_size
+    trained_model = NameFinder.train(**train_kwargs)
+
+    # Run the samples through the trained model
+    print("## Trained Model ##")
+    for sample in args.test_sample:
+        res = trained_model.run(sample)
+        print(f"Results for [{sample}]: {res}")
+    print()
+
+    # Save and reload the model
+    with tempfile.TemporaryDirectory() as workdir:
+        trained_model.save(workdir)
+        loaded_model = NameFinder.load(workdir)
+
+    # Rerun with the loaded model
+    print("## Loaded Model ##")
+    for sample in args.test_sample:
+        res = trained_model.run(sample)
+        print(f"Results for [{sample}]: {res}")
+    print()
+```
+
+```sh
+python module_example.py \
+    -s "Gabe Goodhart" "Gabriel Goodhart" "Gabriel Lincoln Goodhart" \
+    -t "Hi, my name is Gabriel Lincoln Goodhart, but most folks all me Gabe"
+# >>> ## Trained Model ##
+# >>> Results for [Hi, my name is Gabriel Lincoln Goodhart, but most folks all me Gabe]: ['lincoln goodhart', 'goodhart', 'gabriel lincoln', 'gabriel', 'gabe', 'lincoln']
+# >>>
+# >>> ## Loaded Model ##
+# >>> Results for [Hi, my name is Gabriel Lincoln Goodhart, but most folks all me Gabe]: ['lincoln goodhart', 'goodhart', 'gabriel lincoln', 'gabriel', 'gabe', 'lincoln']
+```
+
+### Tasks
+
+In AI workloads, a `task` typically refers to an abstract problem or process that can be solved (modeled) by one or more AI algorithms. In `caikit`, we use the `caikit.core.task` module to define specific `tasks` based on the required input and output data types. These act as an abstract function signature for `Modules` that implement a model algorithm to solve the given task.
+
+Some tasks with sequential intput/output types can have multiple flavors of inference signature to account for intput and output streaming (e.g. `text generation` which can produce its output as a single string, or a stream of tokens). The `@task` decorator in `caikit` allows a single `task` to bind these multiple inference flavors together into a single logical task abstraction. Implementations of the `task` may choose which of the signatures to implement.
+
+**task_example.py**
+
+```py
+from caikit.core import ModuleBase, TaskBase, module, task
+from caikit.core.data_model import DataObjectBase, DataStream, dataobject
+from caikit.core.exceptions import error_handler
+from typing import Dict, Iterable
+import alog
+
+log = alog.use_channel("DEMO")
+error = error_handler.get(log)
+
+@dataobject
+class Document(DataObjectBase):
+    data: str
+
+
+@dataobject
+class TranslationRequestChunk(DataObjectBase):
+    text: str
+    target_language: str
+
+
+@task(
+    unary_parameters={"text": str, "target_language": str},
+    unary_output_type=Document,
+    streaming_parameters={"chunks": Iterable[TranslationRequestChunk]},
+    streaming_output_type=Iterable[str],
+)
+class LanguageTranslationTask(TaskBase):
+    """This task translates from one language to another target language"""
+
+
+@module(
+    "59c226a0-aabe-478d-841a-3bd6a030a897",
+    "Sample LT Module",
+    "1.0.0",
+    task=LanguageTranslationTask,
+)
+class SampleLT(ModuleBase):
+
+    def __init__(self, word_map: Dict[str, Dict[str, str]]):
+        self._word_map = word_map
+
+    @LanguageTranslationTask.taskmethod(input_streaming=True, output_streaming=True)
+    def run_bidi_stream(
+        self, chunks: DataStream[TranslationRequestChunk],
+    ) -> DataStream[str]:
+
+        def translation_generator():
+            for chunk in chunks:
+                text = chunk.text
+                target_language = chunk.target_language
+                error.value_check(
+                    "<DMO15854362E>",
+                    target_language in self._word_map,
+                    "Unsupported target language: %s",
+                    target_language,
+                )
+                target_word_map = self._word_map[target_language]
+                for word in text.split():
+                    yield target_word_map.get(word, f"UNK[{word}]")
+
+        return DataStream(translation_generator)
+
+    @LanguageTranslationTask.taskmethod()
+    def run(self, text: str, target_language: str) -> Document:
+        return Document(
+            " ".join(
+                self.run_bidi_stream([TranslationRequestChunk(text, target_language)])
+            )
+        )
+
+
+if __name__ == "__main__":
+    model = SampleLT({"foo": {"foo": "bar", "baz": "bat"}})
+    print(model.run("foo is a bar", "foo"))
+
+    input_stream = DataStream.from_iterable([
+        TranslationRequestChunk("foo is", "foo"),
+        TranslationRequestChunk("a bar", "foo"),
+    ])
+    for result in model.run_bidi_stream(input_stream):
+        print(result)
+```
+
+```sh
+python task_example.py
+# >>> {
+# >>>   "data": "bar UNK[is] UNK[a] UNK[bar]"
+# >>> }
+# >>> bar
+# >>> UNK[is]
+# >>> UNK[a]
+```
+
 ### Model Management
 
 ### Augmentors
