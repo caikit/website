@@ -461,7 +461,7 @@ The Caikit runtime serves the Hugging Face model so that it can be called for in
 
    ```
 
-2. In one terminal, start the runtime server by riunning the following command:
+2. In one terminal, start the runtime server by running the following command:
 
    ```shell
    python3 start_runtime.py
