@@ -12,8 +12,8 @@ Caikit is an AI toolkit that enables you to use and manage AI models through a s
 Caikit's purpose is twofold:
 
 * It simplifies AI model use, so you can tap into models through familiar APIs (for example, Inference) with no need to transform data.
-* It facilitates AI model management by making it easier to train and maintain your models. 
+* It facilitates AI model management by making it easier to train and maintain your models.
 
 Simply put, Caikit makes it easy for you to implement and manage AI models in your apps, so you can focus on new development instead of maintenance.
 
-Curious to learn more? Check out our [model user tutorial]({{ site.baseurl }}{% link tutorial_appdev.md %}) or [browse our API documentation](https://caikit.readthedocs.io/en/latest/index.html).
+Curious to learn more? Check out our [model user tutorial](./docs/tutorial_appdev.md) or [browse our API documentation](https://caikit.readthedocs.io/en/latest/index.html).
