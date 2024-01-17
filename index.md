@@ -7,7 +7,7 @@ nav_order: 1
 # What is Caikit
 {: .no_toc }
 
-Caikit is an AI toolkit that enables you to use and manage AI models through a set of developer-friendly APIs. It provides a consistent format for creating and using AI models across a wide variety of data domains and tasks. Similar to how, in cloud computing, users can deploy applications to the cloud without a detailed understanding of the underlying infrastructure, Caikit handles many of the infrastrucutre concerns of serving and using AI models. With Caikit, developers who write applications that use AI models aren't beholden to understanding the low-level details of how those models work.
+Caikit is an AI toolkit that enables you to use and manage AI models through a set of developer-friendly APIs. It provides a consistent format for creating and using AI models across a wide variety of data domains and tasks. Similar to how, in cloud computing, users can deploy applications to the cloud without a detailed understanding of the underlying infrastructure, Caikit handles many of the infrastructure concerns of serving and using AI models. With Caikit, developers who write applications that use AI models aren't beholden to understanding the low-level details of how those models work.
 
 Caikit's purpose is twofold:
 
