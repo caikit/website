@@ -715,11 +715,13 @@ print(list(stream))
 
 ## 4. AI Domain Interfaces
 
-### Data Model
+### Domain Data Model
 
-### Tasks
+### Domain Tasks
 
 ## 5. AI Domain Libraries
+
+Within the `caikit` project, there is an evolving set of libraries that offer concrete implementations of [tasks](#tasks) based on their domains.
 
 ### Caikit NLP
 
@@ -750,3 +752,5 @@ The [`caikit-tgis-serving` project](https://github.com/opendatahub-io/caikit-tgi
 The prebuilt images can be pulled directly from Red Hat's [quay.io registry](https://quay.io/repository/opendatahub/caikit-tgis-serving).
 
 ## 7. Kubernetes Runtime Stack
+
+The highest-level architecture in the `caikit` project is the end-to-end runtime stack running in `kubernetes`. An end-to-end [operator](https://kubernetes.io/docs/concepts/extend-kubernetes/operator/) is currently under development, so check back soon!
