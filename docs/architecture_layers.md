@@ -920,11 +920,19 @@ with http_server.RuntimeHTTPServer() as server:
 
 ### Model Mesh
 
+In addition to acting as a standalone server, the [gRPC Server](#grpc-server) implements the [`kserve` ModelMesh Sering](https://kserve.github.io/website/0.8/modelserving/mms/modelmesh/overview/) interface as a [ServingRuntime](https://kserve.github.io/website/0.8/modelserving/servingruntimes/).
+
 ## 4. AI Domain Interfaces
+
+The `caikit.interfaces` module is the home of concrete AI data structures and `task` definitions. These definitions act as a taxonomy of domains and problems within those domains to help standardize interfaces across implementations in derived libraries. Generally speaking, a `domain` is defined by the standard input data type for a group of problems using the canonical acadamic name (e.g. `nlp` for text-based problems, `vision` for image-based problems). There are certainly problems which span domains and/or don't align with the semantic meaning of the academic name (e.g. code generation which is text based, but not natural language).
 
 ### Domain Data Model
 
+Each sub module within `caikit.interfaces.<domain>` holds a `data_model` module that defines the key [dataobject](#data-modeling) structs for the tasks within the given domain.
+
 ### Domain Tasks
+
+Each sub module within `caikit.interfaces.<domain>` holds a `tasks` module that defines the key [task signatures](#tasks) for the problems to be solved in the given domain.
 
 ## 5. AI Domain Libraries
 
