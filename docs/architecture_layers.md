@@ -1,3 +1,9 @@
+---
+title: Architecture Layers
+layout: default
+nav_order: 6
+---
+
 # Architecture Layers
 
 The `caikit` project is itself a stack of complimentary building blocks that layer on top of each other to provide rising levels of abstraction to the various functions in the space of AI problems. The layers roughly break down as follows:
