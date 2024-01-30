@@ -709,9 +709,121 @@ print(list(stream))
 
 ## 3. AI Runtime
 
+For production AI applications, the most common pattern of usage is to provide model functionality [As A Service](https://en.wikipedia.org/wiki/As_a_service). The `caikit.runtime` module provides a server with two possible interfaces that can serve both `training` and `inference` requests for `caikit` models.
+
+### Service Introspection
+
+Since `caikit` is designed to manage AI [tasks](#tasks) in the abstract, `caikit.runtime` does not encode any _explicit_ tasks in its APIs. Instead, it inspects the selection of `module` implementations available and creates `training` and `inference` APIs dynamically at boot.
+
+The set of `modules` available is controlled by setting the [runtime.libarary](https://github.com/caikit/caikit/blob/main/caikit/config/config.yml#L94) configuration. This will cause the referenced library to be imported at boot time and all `@module` decorators will auto-register the corresponding module class.
+
+The `training` service will create an endpoint for each available `module`'s `train` function. The typed arguments for the `train` function will be inspected to form a `DataObject` with the corresponding key names and value types.
+
+The `inference` service will create an endpoint for each [task](#task) that has one or more `module` implementations available. Inference requests will require all of the `task`'s input parameters to be given and aggregate additional arguments from all availble implementations into a task inference request.
+
+The set of interfaces for a given `caikit.runtime` with a given `runtime.library` can be dumped using `python -m caikit.runtime.dump_services`. The output files can then be used to create client-side code that will make requests against the running server.
+
 ### gRPC Server
 
+The `caikit.runtime.grpc_server` module runs a [grpc](https://grpc.io/) server with `RPCs` for each endpoint in the `training`/`inference` services.
+
+```py
+from caikit.core import DataObjectBase, ModuleBase, TaskBase, dataobject, module, task
+from caikit.core.modules import ModuleLoader, ModuleSaver
+from caikit.interfaces.runtime.data_model import TrainingInfoRequest, TrainingStatus
+from caikit.runtime import grpc_server
+import caikit.config
+import os
+
+
+@dataobject
+class Greeting(DataObjectBase):
+    greeting: str
+
+
+@task(unary_parameters={"name": str}, unary_output_type=Greeting)
+class GreetingTask(TaskBase):
+    pass
+
+
+@module("greeter", "Sample Greeter", "0.0.0", task=GreetingTask)
+class GreeterModule(ModuleBase):
+
+    def __init__(self, greeting_template: str = "Hello {}"):
+        self._greeting_template = greeting_template
+
+    def run(self, name: str) -> Greeting:
+        return Greeting(self._greeting_template.format(name))
+
+    @classmethod
+    def train(cls, greeting_prefix: str) -> "GreeterModule":
+        return cls(f"{greeting_prefix} {{}}")
+
+    def save(self, model_path: str):
+        with ModuleSaver(module=self, model_path=model_path) as saver:
+            saver.update_config({"greeting_template": self._greeting_template})
+
+    @classmethod
+    def load(cls, model_path: str) -> "GreeterModule":
+        return cls(ModuleLoader(model_path).config.greeting_template)
+
+
+caikit.configure(
+    config_dict={
+        "runtime": {
+            # Import modules from this script
+            "library": "__main__",
+            # Auto-load models found in the local "models" directory
+            "local_models_dir": "models",
+            "lazy_load_local_models": True,
+            "training": {
+                # Save trained models in the local "models" directory
+                "output_dir": "models",
+                # Don't save with the model ID for ease of auto-loading
+                "save_with_id": False,
+            }
+        }
+    }
+)
+os.makedirs("models", exist_ok=True)
+
+with grpc_server.RuntimeGRPCServer() as server:
+    # Set up service clients
+    chan = server.make_local_channel()
+    train_client = server.training_service.stub_class(chan)
+    train_status_client = server.training_management_service.stub_class(chan)
+    inference_client = server.inference_service.stub_class(chan)
+
+    # Launch a training
+    training_request = server.training_service.messages.GreetingTaskGreeterModuleTrainRequest(
+        model_name="greeter",
+        parameters=server.training_service.messages.GreetingTaskGreeterModuleTrainParameters(
+            greeting_prefix="Greetings",
+        )
+    )
+    training_handle = train_client.GreetingTaskGreeterModuleTrain(training_request)
+    print(f"Started Training {training_handle.training_id} for model {training_handle.model_name}")
+
+    # Wait until the training completes
+    while True:
+        training_status = train_status_client.GetTrainingStatus(
+            TrainingInfoRequest(training_handle.training_id).to_proto()
+        )
+        if training_status.state == TrainingStatus.COMPLETED.value:
+            print(f"Finished training {training_handle.training_id}")
+            break
+
+    # Make an inference request
+    inference_request = server.inference_service.messages.GreetingTaskRequest(name="Gabe")
+    greeting = inference_client.GreetingTaskPredict(
+        inference_request, metadata=list({"mm-model-id": training_handle.model_name}.items())
+    )
+    print(f"Got greeting: {greeting.greeting}")
+```
+
 ### HTTP Server
+
+### Model Mesh
 
 ## 4. AI Domain Interfaces
 
