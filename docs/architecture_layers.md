@@ -823,6 +823,99 @@ with grpc_server.RuntimeGRPCServer() as server:
 
 ### HTTP Server
 
+For those that prefer REST/HTTP to `grpc`, `caikit` also exposes an HTTP server that can server the same functionality as the `grpc` server in the `caikit.runtime.http_server` module.
+
+```py
+from caikit.core import DataObjectBase, ModuleBase, TaskBase, dataobject, module, task
+from caikit.core.modules import ModuleLoader, ModuleSaver
+from caikit.runtime import http_server
+import caikit.config
+import os
+import requests
+
+
+@dataobject
+class Greeting(DataObjectBase):
+    greeting: str
+
+
+@task(unary_parameters={"name": str}, unary_output_type=Greeting)
+class GreetingTask(TaskBase):
+    pass
+
+
+@module("greeter", "Sample Greeter", "0.0.0", task=GreetingTask)
+class GreeterModule(ModuleBase):
+
+    def __init__(self, greeting_template: str = "Hello {}"):
+        self._greeting_template = greeting_template
+
+    def run(self, name: str) -> Greeting:
+        return Greeting(self._greeting_template.format(name))
+
+    @classmethod
+    def train(cls, greeting_prefix: str) -> "GreeterModule":
+        return cls(f"{greeting_prefix} {{}}")
+
+    def save(self, model_path: str):
+        with ModuleSaver(module=self, model_path=model_path) as saver:
+            saver.update_config({"greeting_template": self._greeting_template})
+
+    @classmethod
+    def load(cls, model_path: str) -> "GreeterModule":
+        return cls(ModuleLoader(model_path).config.greeting_template)
+
+
+caikit.configure(
+    config_dict={
+        "runtime": {
+            # Import modules from this script
+            "library": "__main__",
+            # Auto-load models found in the local "models" directory
+            "local_models_dir": "models",
+            "lazy_load_local_models": True,
+            "lazy_load_poll_period_seconds": 1,
+            "training": {
+                # Save trained models in the local "models" directory
+                "output_dir": "models",
+                # Don't save with the model ID for ease of auto-loading
+                "save_with_id": False,
+            }
+        }
+    }
+)
+os.makedirs("models", exist_ok=True)
+
+with http_server.RuntimeHTTPServer() as server:
+    # Set up service clients
+    base_url = f"http://localhost:{server.port}"
+    train_url = f"{base_url}/api/v1/GreetingTaskGreeterModuleTrain"
+    model_info_url = f"{base_url}/info/models"
+    inference_url = f"{base_url}/api/v1/task/greeting"
+
+    # Launch a training
+    model_name = "greeter"
+    training_handle = requests.post(
+        train_url, json={"model_name": model_name, "parameters": {"greeting_prefix": "Heyo"}}
+    ).json()
+    training_id = training_handle["training_id"]
+    print(f"Started Training {training_id} for model {model_name}")
+
+    # Wait until the training completes
+    # NOTE: Training management not yet available in HTTP server
+    while True:
+        model_info = requests.get(model_info_url).json()
+        if any(model["name"] == model_name for model in model_info["models"]):
+            print(f"Finished training {training_id}")
+            break
+
+    # Make an inference request
+    greeting = requests.post(
+        inference_url, json={"inputs": "Gabe", "model_id": model_name},
+    ).json()["greeting"]
+    print(f"Got greeting: {greeting}")
+```
+
 ### Model Mesh
 
 ## 4. AI Domain Interfaces
