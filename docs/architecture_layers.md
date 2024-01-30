@@ -3,16 +3,22 @@
 The `caikit` project is itself a stack of complimentary building blocks that layer on top of each other to provide rising levels of abstraction to the various functions in the space of AI problems. The layers roughly break down as follows:
 
 1. [**Useful Tools**](#1-useful-tools): At the bottom, `caikit` holds a collection of tools that are not AI-specific. These tools are useful for AI, but can be imported and used in just about any problem space where they fit.
+    * DEPENDENCY: `pip install caikit` (no extras)
 
 2. [**AI Data and Model Abstractions**](#2-ai-data-and-model-abstractions): Building on the **Useful Tools**, `caikit` provides a set of abstractions that help to frame AI models based on how a user would consume them (as opposed to how a Data Scientist would author them). Like the **Useful Tools**, these abstractions can be imported and used in any project where there is a need for a pluggable set of runnable objects which can be serialized and configured.
+    * DEPENDENCY: `pip install caikit` (no extras)
 
 3. [**AI Runtime**](#3-ai-runtime): One of the most common needs in any AI application is a server that can provide API access to performing AI tasks in a repeatable way. These tasks are generally `train` (any form of model creation/customization that results in usable artifacts), and `run` (any form of model inference which takes user input and produces model outputs).
+    * DEPENDENCY: `pip install caikit[runtime-XYZ]` (e.g. `runtime-grpc`)
 
 4. [**AI Domain Interfaces**](#4-ai-domain-interfaces): The space of AI is large, and the number of different `domains`, `tasks`, and `data objects` that can be created can be extremely daunting. Many AI platforms attempt to solve this by leaving the interfaces as opaque blobs that only need to be parsable by the model code. This, however, tightly couples the client-side usage of the models to the model implementation which can cause brittleness and migration challenges over time. The `caikit.interfaces` data model attempts to formalize the `domains`, `tasks`, and `data objects` that are most commonly implemented by AI models so that clients can write their code against these interfaces without binding themselves to specific model implementations.
+    * DEPENDENCY: `pip install caikit[interfaces-XYZ]` (e.g. `interfaces-vision`)
 
 5. [**AI Domain Libraries**](#5-ai-domain-libraries): Outside of the core `caikit` library, the `caikit` community supports an ever-growing set of domain libraries which provide concrete implementations of the tasks defined in `caikit.interfaces`. These libraries provide tested model implementations that can be used out-of-the box (subject to each project's maturity level). They also encode some of the more advanced usecases for optimized runtimes (e.g. [text-generation using a remote TGIS backend](https://github.com/caikit/caikit-nlp/blob/main/caikit_nlp/modules/text_generation/text_generation_tgis.py))
+    * DEPENDENCY: `pip install caikit-XYZ` (e.g. `caikit-nlp`)
 
 6. [**Prebuilt Runtime Images**](#6-prebuilt-runtime-images): The most common way to encapsulate an instance of an **AI Runtime** is in a [OCI container image](https://opencontainers.org/) (e.g. [docker](https://www.docker.com/), [podman](https://podman.io/), [rancher](https://www.rancher.com/)). Such images can be run using container runtimes such as [kubernetes](https://kubernetes.io/). The `caikit` community provides prebuilt images through our work with Red Hat OpenShift AI which can be directly used and run in a user's application. These images are built using a single **AI Domain Library** and are each capable of running the collection of modules defined there.
+    * DEPENDENCY: `docker pull caikit-XYZ-runtime`
 
 7. [**Kubernetes Runtime Stack**](#7-kubernetes-runtime-stack): When building a [kubernetes](https://kubernetes.io/) application that manages AI tasks, the `caikit-runtime-stack` provides a convenient [kubernetes operator](https://kubernetes.io/docs/concepts/extend-kubernetes/operator/) which can deploy a collection of **Prebuilt Runtime Images** into a cohesive ML Ops stack with configurable security, scalability, and data transfer options.
     * **NOTE**: We are still in the process of releasing the `caikit-runtime-stack-operator` as open source. Stay tuned!
