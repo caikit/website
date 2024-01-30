@@ -652,7 +652,60 @@ python task_example.py
 
 ### Model Management
 
+At runtime, there are a set of common usage patterns for `modules` and `models` that are defined in `caikit.core.model_management` to manage the in-process state of a given `model` instance. In the abstract, those patterns are:
+
+* `trainer` ([ModelTrainerBase](https://github.com/caikit/caikit/blob/main/caikit/core/model_management/model_trainer_base.py)): A `trainer` is responsible for creating a usable `model` instance from raw materials (pretrained base models, training data, parameters). The local implementation simply wraps the `module`'s `train` function. Alternate implementations may delegate the training workload elsewhere beyond the local process/container/machine.
+
+* `finder` ([ModelFinderBase](https://github.com/caikit/caikit/blob/main/caikit/core/model_management/model_finder_base.py)): A `finder` is responsible for locating the artifacts for a concrete `model` that can be loaded into memory for inference. The local implementation locates file artifacts on disk using the standard [ModuleConfig](https://github.com/caikit/caikit/blob/main/caikit/core/modules/config.py) formatted `config.yml` file. Alternate implementations may locate a model running remodely, or parse an alternate metadata format (e.g. read a `transformers` model's [config.json](https://github.com/huggingface/transformers/blob/415e9a0980b00ef230d850bff7ecf0021c52640d/src/transformers/utils/__init__.py#L217)). The output of a `finder` is an in-memory `ModuleConfig` object.
+
+* `initializer` ([ModelInitializerBase](https://github.com/caikit/caikit/blob/main/caikit/core/model_management/model_initializer_base.py)): An `initializer` is responsible for taking a `ModuleConfig` and creating a running `module` instance that can be used for inference. The local implementation simply uses the `load` funciton from the corresponding `module` class to load the model into memory. Alternate implementations may create proxy objects to an instance of a model running elsewhere (e.g. generic client handle to a `caikit.runtime` server running elsewhere with the model pre-loaded).
+
+Each of these abstractions can be used via the top-level functions [caikit.train](https://github.com/caikit/caikit/blob/main/caikit/core/model_manager.py#L94) and [caikit.load](https://github.com/caikit/caikit/blob/main/caikit/core/model_manager.py#L204). These functions are defined on the singleton `ModelManager` instance. When a model-management component is not explicitly passed to `caikit.train`/`caikit.load`, the `"default"` is used based on the configuration in `model_management.[trainers|finders|initializers].default` ([here](https://github.com/caikit/caikit/blob/main/caikit/config/config.yml#L27)).
+
 ### Augmentors
+
+One of the most common operations when trainig or tuning an AI model is to perform [data augmentation](https://en.wikipedia.org/wiki/Data_augmentation) on the training data to improve how well it represents the statistics of the behavior being modeled. In `caikit`, this is managed using the [caikit.core.augmentors](https://github.com/caikit/caikit/blob/main/caikit/core/augmentors/__init__.py) abstractions. The core interface of an `Augmentor` is a basic data filter where the output type must match the input type.
+
+```py
+import random
+from caikit.core.augmentors import AugmentorBase
+from caikit.core.data_model import DataStream
+
+
+class DoublingAugmentor(AugmentorBase):
+
+    augmentor_type = int
+
+    def _augment(self, val: int) -> int:
+        return val * 2
+
+
+class RandomNoiseAugmentor(AugmentorBase):
+
+    augmentor_type = float
+
+    def __init__(self, random_seed: int = 42, range_size: float = 1.0):
+        self._range_size = range_size
+        super().__init__(random_seed, False)
+
+    def _augment(self, val: float) -> float:
+        delta = (random.random() - 0.5) * self._range_size
+        return val + delta
+
+
+def int_to_float(val: int) -> float:
+    return float(val)
+
+
+# Create a data stream that has been augmented with the doubled sequence and the
+# randomly permuted sequence
+stream = DataStream.from_iterable(range(10)).augment(
+    DoublingAugmentor(42, False), 1, post_augment_func=int_to_float,
+).augment(
+    RandomNoiseAugmentor(), 1,
+)
+print(list(stream))
+```
 
 ## 3. AI Runtime
 
