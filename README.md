@@ -21,6 +21,17 @@ The Caikit website is built with the [Just the Docs](https://just-the-docs.com/)
 3. Run `bundle exec jekyll serve` to build the website.
 4. Preview the site in a browser at `localhost:4000`.
 
+**NOTE** You can run the site inside a docker container, but need to pass `--host 0.0.0.0` to `jekyll serve` to allow the site to be loaded via an exposed port in the container
+
+```sh
+docker run --rm -it -p 4000:4000 \
+    -v $PWD:/src \
+    -w /src \
+    --entrypoint bash \
+    ruby \
+    -c "bundle install && bundle exec jekyll serve --host 0.0.0.0 --verbose"
+```
+
 ## Contributing to the Caikit documentation
 
 First, check out our [contributing guide](https://github.com/caikit/community/blob/main/CONTRIBUTING.md) to learn how to contribute to Caikit. The Caikit documentation follows the same general guidelines as the greater Caikit project.
