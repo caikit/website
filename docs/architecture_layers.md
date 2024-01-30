@@ -711,6 +711,8 @@ print(list(stream))
 
 For production AI applications, the most common pattern of usage is to provide model functionality [As A Service](https://en.wikipedia.org/wiki/As_a_service). The `caikit.runtime` module provides a server with two possible interfaces that can serve both `training` and `inference` requests for `caikit` models.
 
+The simplest way to run `caikit.runtime` is `python -m caikit.runtime`. This will launch the desired server interface heads based on the config values `runtime.grpc.enabled` and `runtime.http.enabled`.
+
 ### Service Introspection
 
 Since `caikit` is designed to manage AI [tasks](#tasks) in the abstract, `caikit.runtime` does not encode any _explicit_ tasks in its APIs. Instead, it inspects the selection of `module` implementations available and creates `training` and `inference` APIs dynamically at boot.
