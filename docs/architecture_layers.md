@@ -11,19 +11,19 @@ The `caikit` project is itself a stack of complimentary building blocks that lay
 1. [**Useful Tools**](#1-useful-tools): At the bottom, `caikit` holds a collection of tools that are not AI-specific. These tools are useful for AI, but can be imported and used in just about any problem space where they fit. These tools handle low-level functions like configuration, logging, concurrency, and more.
     * DEPENDENCY: `pip install caikit` (no extras)
 
-2. [**AI Data and Model Abstractions**](#2-ai-data-and-model-abstractions): Building on the **Useful Tools**, `caikit` provides a set of abstractions that help to frame AI models based on how a user would consume them (as opposed to how a Data Scientist would author them). Like the **Useful Tools**, these abstractions can be imported and used in any project where there is a need for a pluggable set of runnable objects which can be serialized and configured.
+2. [**AI Data and Model Abstractions**](#2-ai-data-and-model-abstractions): Building on the **Useful Tools**, `caikit` provides a set of abstractions that help to frame AI models based on how a user would consume them (as opposed to how a Data Scientist would author them). Like the **Useful Tools**, these abstractions can be imported and used in any project that needs a pluggable set of runnable objects that can be serialized and configured.
     * DEPENDENCY: `pip install caikit` (no extras)
 
 3. [**AI Runtime**](#3-ai-runtime): One of the most common needs in any AI application is a server that can provide API access to perform AI tasks in a repeatable way. These tasks are generally `train` (any form of model creation/customization that results in usable artifacts), and `run` (any form of model inference which takes user input and produces model outputs).
     * DEPENDENCY: `pip install caikit[runtime-XYZ]` (e.g. `runtime-grpc`)
 
-4. [**AI Domain Interfaces**](#4-ai-domain-interfaces): The space of AI is large, and the number of different `domains`, `tasks`, and `data objects` that can be created can be extremely daunting. Many AI platforms attempt to solve this by leaving the interfaces as opaque blobs that only need to be parsable by the model code. This, however, tightly couples the client-side usage of the models to the model implementation which can cause brittleness and migration challenges over time. The `caikit.interfaces` data model attempts to formalize the `domains`, `tasks`, and `data objects` that are most commonly implemented by AI models so that clients can write their code against these interfaces without binding themselves to specific model implementations.
+4. [**AI Domain Interfaces**](#4-ai-domain-interfaces): The space of AI is large, and the number of different `domains`, `tasks`, and `data objects` that can be created can be extremely daunting. Many AI platforms attempt to solve this by leaving the interfaces as opaque blobs that only need to be parsable by the model code. However, this tightly couples the client-side use of the models to the model implementation, which can cause brittleness and migration challenges over time. The `caikit.interfaces` data model attempts to formalize the `domains`, `tasks`, and `data objects` that are most commonly implemented by AI models. With `caikit.interfaces`, clients can write their code against these interfaces without binding themselves to specific model implementations.
     * DEPENDENCY: `pip install caikit[interfaces-XYZ]` (e.g. `interfaces-vision`)
 
-5. [**AI Domain Libraries**](#5-ai-domain-libraries): Outside of the core `caikit` library, the `caikit` community supports an ever-growing set of domain libraries which provide concrete implementations of the tasks defined in `caikit.interfaces`. These libraries provide tested model implementations that can be used out-of-the box (subject to each project's maturity level). They also encode some of the more advanced usecases for optimized runtimes (e.g. [text-generation using a remote TGIS backend](https://github.com/caikit/caikit-nlp/blob/main/caikit_nlp/modules/text_generation/text_generation_tgis.py))
+5. [**AI Domain Libraries**](#5-ai-domain-libraries): Outside of the core `caikit` library, the `caikit` community supports an ever-growing set of domain libraries that provide concrete implementations of the tasks defined in `caikit.interfaces`. These libraries provide tested model implementations that can be used out-of-the box (subject to each project's maturity level). They also encode some of the more advanced use cases for optimized runtimes (e.g. [text-generation using a remote TGIS backend](https://github.com/caikit/caikit-nlp/blob/main/caikit_nlp/modules/text_generation/text_generation_tgis.py))
     * DEPENDENCY: `pip install caikit-XYZ` (e.g. `caikit-nlp`)
 
-6. [**Prebuilt Runtime Images**](#6-prebuilt-runtime-images): The most common way to encapsulate an instance of an **AI Runtime** is in a [OCI container image](https://opencontainers.org/) (e.g. [docker](https://www.docker.com/), [podman](https://podman.io/), [rancher](https://www.rancher.com/)). Such images can be run using container runtimes such as [kubernetes](https://kubernetes.io/). The `caikit` community provides prebuilt images through our work with Red Hat OpenShift AI which can be directly used and run in a user's application. These images are built using a single **AI Domain Library** and are each capable of running the collection of modules defined there.
+6. [**Prebuilt Runtime Images**](#6-prebuilt-runtime-images): The most common way to encapsulate an instance of an **AI Runtime** is in a [OCI container image](https://opencontainers.org/) (e.g. [docker](https://www.docker.com/), [podman](https://podman.io/), [rancher](https://www.rancher.com/)). Such images can be run using container runtimes such as [kubernetes](https://kubernetes.io/). Through our work with Red Hat OpenShift AI, the `caikit` community provides prebuilt images that can be directly used and run in a user's application. These images are built using a single **AI Domain Library** and are each capable of running the collection of modules defined there.
     * DEPENDENCY: `docker pull caikit-XYZ-runtime`
 
 7. [**Kubernetes Runtime Stack**](#7-kubernetes-runtime-stack): When building a [kubernetes](https://kubernetes.io/) application that manages AI tasks, the `caikit-runtime-stack` provides a convenient [kubernetes operator](https://kubernetes.io/docs/concepts/extend-kubernetes/operator/) which can deploy a collection of **Prebuilt Runtime Images** into a cohesive ML Ops stack with configurable security, scalability, and data transfer options.
@@ -281,7 +281,7 @@ PARAM=0 python log_error_example.py
 
 ## 2. AI Data and Model Abstractions
 
-Above the [**Useful Tools**](#1-useful-tools), `caikit` provides a collection of abstractions and utilities that provide the building blocks for AI workloads. These are all live in `caikit.core` and each have their own sub module.
+Above the [**Useful Tools**](#1-useful-tools), `caikit` provides a collection of abstractions and utilities that provide the building blocks for AI workloads. These all live in `caikit.core` and each has its own submodule.
 
 ### Data Modeling
 
@@ -382,7 +382,7 @@ python dataobject_example.py
 
 ### Data Streaming
 
-For many AI workloads, especially `training`, data volumes quickly escape the bounds of in-memory iterables. There are numerous solutions for managing iterables of data backed by disk or even remote services. In `caikit`, these are all managed via the [DataStream](https://github.com/caikit/caikit/blob/main/caikit/core/data_model/streams/data_stream.py) utility. This class provides consistent iteration semantics wrapping arbitrary [python generators](https://wiki.python.org/moin/Generators).
+For many AI workloads, especially `training`, data volumes quickly escape the bounds of in-memory iterables. There are numerous solutions for managing iterables of data backed by disk or even remote services. In `caikit`, these are all managed via the [DataStream](https://github.com/caikit/caikit/blob/main/caikit/core/data_model/streams/data_stream.py) utility. This class provides consistent iteration semantics by wrapping arbitrary [python generators](https://wiki.python.org/moin/Generators).
 
 **datastream_example.py**
 
@@ -416,9 +416,9 @@ The basic unit of work for AI is the `model`. An AI `model` is, at its highest l
 
 Combining these two ingredients into a concrete asset is typically framed as the `training` work. Using the resulting combined asset to replicate the process is the `inference` work.
 
-One key observation is that when an `inference` job executes, it _must_ use the same **algorithm** that was used to create the `model` artifacts in the first place, otherwise there can be no guarantee that the model will accurately reproduce the learned approximation to the process that resulted from `training`. In software, this often means controlling as many variables as possible between `training` and `inference`. These variables can include things like preprocessing steps, software package versions, hardware driver versions, etc.
+One key observation is that when an `inference` job executes, it _must_ use the same **algorithm** that was used to create the `model` artifacts in the first place. Otherwise there can be no guarantee that the model will accurately reproduce the learned approximation to the process that resulted from `training`. In software, this often means controlling as many variables as possible between `training` and `inference`. These variables can include things like preprocessing steps, software package versions, hardware driver versions, etc.
 
-In `caikit`, the [module](https://github.com/caikit/caikit/blob/main/caikit/core/modules/base.py) abstraction provides the base for implementing the **algorithm** for both `training` and `inference` in a single location so that these variables can be explicitly controlled for. The key functions that a `module` expects are `train`, `save`, `load`, and `run`. Depending on the usecase, each of these may be optional, but canonically a `module` which defines all of these functions provides a fully encapsulated and repeatable model template.
+In `caikit`, the [module](https://github.com/caikit/caikit/blob/main/caikit/core/modules/base.py) abstraction provides the base for implementing the **algorithm** for both `training` and `inference` in a single location so that these variables can be explicitly controlled for. The key functions that a `module` expects are `train`, `save`, `load`, and `run`. Depending on the use case, each of these might be optional. Canonically, a `module` that defines all of these functions provides a fully encapsulated and repeatable model template.
 
 **module_example.py**
 
@@ -558,7 +558,7 @@ python module_example.py \
 
 In AI workloads, a `task` typically refers to an abstract problem or process that can be solved (modeled) by one or more AI algorithms. In `caikit`, we use the `caikit.core.task` module to define specific `tasks` based on the required input and output data types. These act as an abstract function signature for `Modules` that implement a model algorithm to solve the given task.
 
-Some tasks with sequential intput/output types can have multiple flavors of inference signature to account for intput and output streaming (e.g. `text generation` which can produce its output as a single string, or a stream of tokens). The `@task` decorator in `caikit` allows a single `task` to bind these multiple inference flavors together into a single logical task abstraction. Implementations of the `task` may choose which of the signatures to implement.
+Some tasks with sequential intput/output types can have multiple flavors of inference signature to account for intput and output streaming (e.g. `text generation` which can produce its output as a single string or a stream of tokens). The `@task` decorator in `caikit` allows a single `task` to bind these multiple inference flavors together into a single logical task abstraction. Implementations of the `task` may choose which of the signatures to implement.
 
 **task_example.py**
 
@@ -662,7 +662,7 @@ At runtime, there are a set of common usage patterns for `modules` and `models` 
 
 * `trainer` ([ModelTrainerBase](https://github.com/caikit/caikit/blob/main/caikit/core/model_management/model_trainer_base.py)): A `trainer` is responsible for creating a usable `model` instance from raw materials (pretrained base models, training data, parameters). The local implementation simply wraps the `module`'s `train` function. Alternate implementations may delegate the training workload elsewhere beyond the local process/container/machine.
 
-* `finder` ([ModelFinderBase](https://github.com/caikit/caikit/blob/main/caikit/core/model_management/model_finder_base.py)): A `finder` is responsible for locating the artifacts for a concrete `model` that can be loaded into memory for inference. The local implementation locates file artifacts on disk using the standard [ModuleConfig](https://github.com/caikit/caikit/blob/main/caikit/core/modules/config.py) formatted `config.yml` file. Alternate implementations may locate a model running remodely, or parse an alternate metadata format (e.g. read a `transformers` model's [config.json](https://github.com/huggingface/transformers/blob/415e9a0980b00ef230d850bff7ecf0021c52640d/src/transformers/utils/__init__.py#L217)). The output of a `finder` is an in-memory `ModuleConfig` object.
+* `finder` ([ModelFinderBase](https://github.com/caikit/caikit/blob/main/caikit/core/model_management/model_finder_base.py)): A `finder` is responsible for locating the artifacts for a concrete `model` that can be loaded into memory for inference. The local implementation locates file artifacts on disk using the standard [ModuleConfig](https://github.com/caikit/caikit/blob/main/caikit/core/modules/config.py) formatted `config.yml` file. Alternate implementations may locate a model running remotely, or parse an alternate metadata format (e.g. read a `transformers` model's [config.json](https://github.com/huggingface/transformers/blob/415e9a0980b00ef230d850bff7ecf0021c52640d/src/transformers/utils/__init__.py#L217)). The output of a `finder` is an in-memory `ModuleConfig` object.
 
 * `initializer` ([ModelInitializerBase](https://github.com/caikit/caikit/blob/main/caikit/core/model_management/model_initializer_base.py)): An `initializer` is responsible for taking a `ModuleConfig` and creating a running `module` instance that can be used for inference. The local implementation simply uses the `load` funciton from the corresponding `module` class to load the model into memory. Alternate implementations may create proxy objects to an instance of a model running elsewhere (e.g. generic client handle to a `caikit.runtime` server running elsewhere with the model pre-loaded).
 
@@ -670,7 +670,7 @@ Each of these abstractions can be used via the top-level functions [caikit.train
 
 ### Augmentors
 
-One of the most common operations when trainig or tuning an AI model is to perform [data augmentation](https://en.wikipedia.org/wiki/Data_augmentation) on the training data to improve how well it represents the statistics of the behavior being modeled. In `caikit`, this is managed using the [caikit.core.augmentors](https://github.com/caikit/caikit/blob/main/caikit/core/augmentors/__init__.py) abstractions. The core interface of an `Augmentor` is a basic data filter where the output type must match the input type.
+One of the most common operations when training or tuning an AI model is to perform [data augmentation](https://en.wikipedia.org/wiki/Data_augmentation) on the training data to improve how well it represents the statistics of the behavior being modeled. In `caikit`, this is managed using the [caikit.core.augmentors](https://github.com/caikit/caikit/blob/main/caikit/core/augmentors/__init__.py) abstractions. The core interface of an `Augmentor` is a basic data filter where the output type must match the input type.
 
 ```py
 import random
@@ -723,11 +723,11 @@ The simplest way to run `caikit.runtime` is `python -m caikit.runtime`. This wil
 
 Since `caikit` is designed to manage AI [tasks](#tasks) in the abstract, `caikit.runtime` does not encode any _explicit_ tasks in its APIs. Instead, it inspects the selection of `module` implementations available and creates `training` and `inference` APIs dynamically at boot.
 
-The set of `modules` available is controlled by setting the [runtime.libarary](https://github.com/caikit/caikit/blob/main/caikit/config/config.yml#L94) configuration. This will cause the referenced library to be imported at boot time and all `@module` decorators will auto-register the corresponding module class.
+The set of `modules` available is controlled by setting the [runtime.library](https://github.com/caikit/caikit/blob/main/caikit/config/config.yml#L94) configuration. This will cause the referenced library to be imported at boot time and all `@module` decorators will auto-register the corresponding module class.
 
 The `training` service will create an endpoint for each available `module`'s `train` function. The typed arguments for the `train` function will be inspected to form a `DataObject` with the corresponding key names and value types.
 
-The `inference` service will create an endpoint for each [task](#task) that has one or more `module` implementations available. Inference requests will require all of the `task`'s input parameters to be given and aggregate additional arguments from all availble implementations into a task inference request.
+The `inference` service will create an endpoint for each [task](#task) that has one or more `module` implementations available. Inference requests will require all of the `task`'s input parameters to be given and aggregate additional arguments from all available implementations into a task inference request.
 
 The set of interfaces for a given `caikit.runtime` with a given `runtime.library` can be dumped using `python -m caikit.runtime.dump_services`. The output files can then be used to create client-side code that will make requests against the running server.
 
@@ -831,7 +831,9 @@ with grpc_server.RuntimeGRPCServer() as server:
 
 ### HTTP Server
 
-For those that prefer REST/HTTP to `grpc`, `caikit` also exposes an HTTP server that can server the same functionality as the `grpc` server in the `caikit.runtime.http_server` module.
+For those that prefer REST/HTTP to `grpc`, `caikit` also supports an HTTP server in the `caikit.runtime.http_server` module. The endpoints mirror* the RPCs from the `grpc` server with some modified structure to match common REST API practices.
+
+*NOTE: Currently, the `http_server` does not support the training management service
 
 ```py
 from caikit.core import DataObjectBase, ModuleBase, TaskBase, dataobject, module, task
@@ -930,7 +932,7 @@ In addition to acting as a standalone server, the [gRPC Server](#grpc-server) im
 
 ## 4. AI Domain Interfaces
 
-The `caikit.interfaces` module is the home of concrete AI data structures and `task` definitions. These definitions act as a taxonomy of domains and problems within those domains to help standardize interfaces across implementations in derived libraries. Generally speaking, a `domain` is defined by the standard input data type for a group of problems using the canonical acadamic name (e.g. `nlp` for text-based problems, `vision` for image-based problems). There are certainly problems which span domains and/or don't align with the semantic meaning of the academic name (e.g. code generation which is text based, but not natural language).
+The `caikit.interfaces` module is the home of concrete AI data structures and `task` definitions. These definitions act as a taxonomy of domains and problems within those domains to help standardize interfaces across implementations in derived libraries. Generally speaking, a `domain` is defined by the standard input data type for a group of problems using the canonical academic name (e.g. `nlp` for text-based problems, `vision` for image-based problems). There are certainly problems that span domains and/or don't align with the semantic meaning of the academic name (e.g. code generation which is text based, but not natural language).
 
 ### Domain Data Model
 
@@ -946,12 +948,12 @@ Within the `caikit` project, there is an evolving set of libraries that offer co
 
 ### Caikit NLP
 
-The most mature AI domain in the `caikit` community is Natural Language Processing (NLP). The [caikit-nlp project](https://github.com/caikit/caikit-nlp) holds modules implementing the most essential tasks in NLP, particular for generative AI usecases.
+The most mature AI domain in the `caikit` community is Natural Language Processing (NLP). The [caikit-nlp project](https://github.com/caikit/caikit-nlp) holds modules implementing the most essential tasks in NLP, particularly for generative AI use cases.
 
 * [**Text Generation**](https://github.com/caikit/caikit-nlp/tree/main/caikit_nlp/modules/text_generation): Generative models which take prompt text in and generate novel text based on the prompt.
 * [**Text Embedding**](https://github.com/caikit/caikit-nlp/tree/main/caikit_nlp/modules/text_embedding): Given input prompt text, generate embedding vectors based on a language model
 * [**Tokenization**](https://github.com/caikit/caikit-nlp/tree/main/caikit_nlp/modules/tokenization): Given a string of text, split the text into a sequence of individual tokens
-* [**Token Classification**](https://github.com/caikit/caikit-nlp/tree/main/caikit_nlp/modules/token_classification): Given a sequence of tokens, detect token groups which match certain classes (e.g. Personally Identifiable Information)
+* [**Token Classification**](https://github.com/caikit/caikit-nlp/tree/main/caikit_nlp/modules/token_classification): Given a sequence of tokens, detect token groups that match certain classes (e.g. Personally Identifiable Information)
 * [**Text Classification**](https://github.com/caikit/caikit-nlp/tree/main/caikit_nlp/modules/text_classification): Given a string of text, classify it based on a known set of classes
 
 ### Caikit Computer Vision
@@ -964,7 +966,7 @@ The `caikit` community, in close partnership with Red Hat's OpenShift AI team, p
 
 ### Caikit NLP
 
-The `caikit-nlp` project provides a [Dockerfile](https://github.com/caikit/caikit-nlp/blob/main/Dockerfile) that builds an image which can be launched to start the `caikit.runtime` server(s) with the `caikit_nlp` modules configured.
+The `caikit-nlp` project provides a [Dockerfile](https://github.com/caikit/caikit-nlp/blob/main/Dockerfile) that builds an image that can be launched to start the `caikit.runtime` server(s) with the `caikit_nlp` modules configured.
 
 ### Caikit TGIS Serving
 
