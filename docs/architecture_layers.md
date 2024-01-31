@@ -8,7 +8,7 @@ nav_order: 6
 
 The `caikit` project is itself a stack of complimentary building blocks that layer on top of each other to provide rising levels of abstraction to the various functions in the space of AI problems. The layers roughly break down as follows:
 
-1. [**Useful Tools**](#1-useful-tools): At the bottom, `caikit` holds a collection of tools that are not AI-specific. These tools are useful for AI, but can be imported and used in just about any problem space where they fit.
+1. [**Useful Tools**](#1-useful-tools): At the bottom, `caikit` holds a collection of tools that are not AI-specific. These tools are useful for AI, but can be imported and used in just about any problem space where they fit. These tools handle low-level functions like configuration, logging, concurrency, and more.
     * DEPENDENCY: `pip install caikit` (no extras)
 
 2. [**AI Data and Model Abstractions**](#2-ai-data-and-model-abstractions): Building on the **Useful Tools**, `caikit` provides a set of abstractions that help to frame AI models based on how a user would consume them (as opposed to how a Data Scientist would author them). Like the **Useful Tools**, these abstractions can be imported and used in any project where there is a need for a pluggable set of runnable objects which can be serialized and configured.
