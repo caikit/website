@@ -22,7 +22,7 @@ The example model is [Hugging Face DistilBERT base uncased finetuned SST-2](http
 ## What you'll build
 
 - You'll create a Python project that contains the Caikit runtime, an AI model, and a client application.
-- The Caikit runtime consists of a data model that representes the attributes of the AI model in code and a module that enables the runtime to load and run the AI model.
+- The Caikit runtime consists of a data model that represents the attributes of the AI model in code and a module that enables the runtime to load and run the AI model.
 - You'll also configure a client application that can use the runtime to querry the AI model for text sentiment analysis on text samples that are supplied by the application.
 
 When you finish, your Python package will have the following directory structure:
@@ -399,7 +399,8 @@ Create a module class that wraps the example Hugging Face AI model so that Caiki
 2. Create a `requirements.txt` file and add the following dependencies:
 
    ```text
-   caikit
+   # Install caikit with the optional dependencies for the grpc runtime
+   caikit[runtime-grpc]
 
    # Only needed for Hugging Face
    scipy
@@ -470,7 +471,7 @@ The Caikit runtime serves the Hugging Face model so that it can be called for in
     You should see output similar to the following example:
 
    ```vim
-   $ python3 start_runtime.py   
+   $ python3 start_runtime.py
 
    <function register_backend_type at 0x7fce0064b5e0> is still in the BETA phase and subject to change!
    {"channel": "COM-LIB-INIT", "exception": null, "level": "info", "log_code": "<RUN11997772I>", "message": "Loading service module: text_sentiment", "num_indent": 0, "thread_id": 8605140480, "timestamp": "2023-05-02T11:42:52.808812"}
@@ -576,7 +577,7 @@ The best way to test the model that is loaded is to write some simple Python cli
    RESPONSE: classes {
    class_name: "POSITIVE"
    confidence: 0.999869704246521
-   }   
+   }
    ```
 
 ## Results
